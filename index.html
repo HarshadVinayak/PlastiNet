@@ -11,8 +11,9 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="PlastiNet" />
+  <meta name="plastinet-apk-url" content="" />
   <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="icon" href="assets/app-icon.svg" type="image/svg+xml" />
+  <link rel="icon" href="assets/app-icon-192.png" type="image/png" />
   <link rel="apple-touch-icon" href="assets/app-icon-192.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -29,7 +30,7 @@
       </div>
       <div class="hero-content">
         <div class="brand-tag">
-          <span class="brand">PlastiNet</span>
+          <img class="brand-mark brand-mark--hero" src="assets/app-icon-source.png" alt="PlastiNet logo" />
           <span class="tagline">Turn Plastic Into Rewards</span>
         </div>
         <p class="hero-copy">
@@ -40,7 +41,11 @@
           <button class="glow-btn" data-target="login" data-auth>Login</button>
           <button class="glow-btn secondary" data-target="signup" data-auth>Sign Up</button>
           <button class="glow-btn secondary hidden" id="install-app-btn" type="button">Install App</button>
+          <button class="glow-btn secondary" id="download-apk-btn" type="button">Download APK</button>
         </div>
+        <p class="hero-install-note" id="android-install-note">
+          Use Install App for instant Android installation in Chrome, or attach a hosted APK link to enable direct APK downloads.
+        </p>
         <div class="hero-highlight-grid">
           <article class="hero-highlight">
             <p class="label">Avg. plastic logged</p>
@@ -76,7 +81,10 @@
     </header>
 
     <nav class="main-nav" aria-label="Primary">
-      <span class="logo">PlastiNet</span>
+      <span class="logo">
+        <img class="brand-mark brand-mark--nav" src="assets/app-icon-source.png" alt="PlastiNet logo" />
+        <span>PlastiNet</span>
+      </span>
       <div class="nav-actions">
         <button class="nav-btn" data-target="landing">Landing</button>
         <button class="nav-btn" data-target="login" data-auth>Login</button>
@@ -278,6 +286,20 @@
             <div class="progress-bar" id="next-reward-progress"></div>
           </div>
           <p class="progress-label" id="progress-label">0 / 100 P$ toward next reward</p>
+          <section class="mission-card" aria-label="Mission control">
+            <div class="mission-card-header">
+              <div>
+                <p class="label">Mission Control</p>
+                <h3 id="mission-title">Let&apos;s get your first verified scan.</h3>
+              </div>
+              <p class="subtle" id="mission-status">Sign in, scan, and unlock your first reward checkpoint.</p>
+            </div>
+            <div class="mission-actions">
+              <button class="glow-btn" id="mission-primary-btn" type="button">Start Scanning</button>
+              <button class="glow-btn secondary" id="mission-secondary-btn" type="button">View Rewards</button>
+            </div>
+            <ul class="mission-list" id="mission-list"></ul>
+          </section>
           <div class="dashboard-grid">
             <article class="dash-card dash-card--scanner">
               <div class="dash-card-head">
@@ -346,6 +368,24 @@
             </div>
             <p class="subtle" id="scan-status">Waiting for your next haul.</p>
           </div>
+          <div class="manual-scan-card">
+            <div>
+              <p class="label">Manual fallback</p>
+              <h3>Paste a BIN code if camera access is blocked</h3>
+              <p class="subtle">Useful on laptops, shared devices, or when you want to test the flow without opening the scanner.</p>
+            </div>
+            <form id="manual-scan-form" class="manual-scan-form">
+              <input
+                id="manual-scan-input"
+                type="text"
+                name="manual-qr"
+                placeholder="BIN_001_1710000000_ABCDE"
+                autocomplete="off"
+                spellcheck="false"
+              />
+              <button class="glow-btn secondary" type="submit">Submit code</button>
+            </form>
+          </div>
           <div class="scan-history">
             <h3>Latest activity</h3>
             <ul id="scan-history" class="history-list"></ul>
@@ -366,6 +406,10 @@
         <div class="content-panel">
           <h2>Scan history</h2>
           <p>Every entry represents a bottle saved from landfills.</p>
+          <div class="history-toolbar">
+            <div class="history-summary" id="history-summary"></div>
+            <button class="glow-btn secondary" id="export-history-btn" type="button">Export CSV</button>
+          </div>
           <div class="history-wrapper">
             <p class="subtle" id="history-empty">No scans recorded yet.</p>
             <ul id="history-list" class="history-list"></ul>

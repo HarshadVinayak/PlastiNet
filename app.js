@@ -6,7 +6,7 @@
  *    ES Modules need HTTP so `file://` access will fail.
  */
 import { markScanned, parseBinQRCode, simulateBinQRCode } from './qr.js';
-import { sendScanToServer } from './api.js';
+import { registerQrWithServer, sendScanToServer } from './api.js';
 
 /*
  * Hardware integration note:
@@ -33,10 +33,10 @@ const achievementRules = [
 ];
 
 const MOCK_REWARDS = [
-  { id: '1', title: 'Bamboo Straw Set', cost: 50, description: 'Reusable bamboo straws with cleaner.', image: 'https://placehold.co/400x200/e0f2f1/00695c?text=Bamboo+Straws' },
-  { id: '2', title: 'Eco Tote Bag', cost: 120, description: 'Organic cotton shopping bag.', image: 'https://placehold.co/400x200/e0f2f1/00695c?text=Tote+Bag' },
-  { id: '3', title: 'Steel Water Bottle', cost: 300, description: 'Insulated stainless steel bottle.', image: 'https://placehold.co/400x200/e0f2f1/00695c?text=Water+Bottle' },
-  { id: '4', title: 'Claim Money (₹1)', cost: 250, description: 'Exchange P$250 for 1 Rupee.', image: 'https://placehold.co/400x200/e0f2f1/00695c?text=Claim+Money' }
+  { id: '1', title: 'Bamboo Straw Set', cost: 50, description: 'Reusable bamboo straws with cleaner.' },
+  { id: '2', title: 'Eco Tote Bag', cost: 120, description: 'Organic cotton shopping bag.' },
+  { id: '3', title: 'Steel Water Bottle', cost: 300, description: 'Insulated stainless steel bottle.' },
+  { id: '4', title: 'Claim Money (₹1)', cost: 250, description: 'Exchange P$250 for 1 Rupee.' }
 ];
 
 const MOCK_LEADERBOARD = [
@@ -98,10 +98,24 @@ const trainingFeedback = document.getElementById('cloe-training-feedback');
 const exportTrainingBtn = document.getElementById('export-training-btn');
 const importTrainingInput = document.getElementById('import-training-input');
 const installAppBtn = document.getElementById('install-app-btn');
+const downloadApkBtn = document.getElementById('download-apk-btn');
+const androidInstallNote = document.getElementById('android-install-note');
 const suggestionList = document.getElementById('assistant-suggestion-list');
 const assistantHistoryList = document.getElementById('assistant-history-list');
+const historySummary = document.getElementById('history-summary');
+const exportHistoryBtn = document.getElementById('export-history-btn');
+const manualScanForm = document.getElementById('manual-scan-form');
+const manualScanInput = document.getElementById('manual-scan-input');
+const missionTitle = document.getElementById('mission-title');
+const missionStatus = document.getElementById('mission-status');
+const missionList = document.getElementById('mission-list');
+const missionPrimaryBtn = document.getElementById('mission-primary-btn');
+const missionSecondaryBtn = document.getElementById('mission-secondary-btn');
+const simulateBinBtn = document.getElementById('simulate-bin-btn');
 
 const formatPlastiCoins = (value = 0) => `P$${Number(value || 0).toLocaleString()}`;
+const formatDateTime = (value) => new Date(value).toLocaleString();
+const formatDateOnly = (value) => new Date(value).toLocaleDateString();
 
 let html5QrCode = null;
 let scannerActive = false;
@@ -110,6 +124,10 @@ let rewardsCache = [];
 let previousPoints = 0;
 let pointsAnimationFrame = null;
 let deferredInstallPrompt = null;
+const APK_DOWNLOAD_URL = document
+  .querySelector('meta[name="plastinet-apk-url"]')
+  ?.getAttribute('content')
+  ?.trim();
 
 const safeParse = (value) => {
   try {
@@ -121,6 +139,31 @@ const safeParse = (value) => {
 };
 
 const normalizeEmail = (value = '') => value.toString().trim().toLowerCase();
+const isKnownView = (value = '') => ['landing', 'login', 'signup', ...protectedViews].includes(value);
+const isSameDay = (left, right) => left?.toDateString?.() === right?.toDateString?.();
+const getHistoryEntries = () => currentUser?.history ?? [];
+const getScanEntries = () => getHistoryEntries().filter((entry) => entry.action === 'Plastic recycled');
+const getRewardEntries = () => getHistoryEntries().filter((entry) => entry.action?.startsWith('Reward redeemed:'));
+const getLastScanEntry = () => getScanEntries()[0] ?? null;
+const hasScannedToday = () => {
+  const latest = getLastScanEntry();
+  return latest ? isSameDay(new Date(latest.date), new Date()) : false;
+};
+const getSortedRewards = () => [...rewardsCache].sort((left, right) => left.cost - right.cost);
+const getNextReward = (points = currentUser?.points ?? 0) => getSortedRewards().find((reward) => reward.cost > points) ?? null;
+const csvEscape = (value = '') => `"${value.toString().replaceAll('"', '""')}"`;
+
+const downloadTextFile = (filename, payload, mimeType = 'text/plain;charset=utf-8') => {
+  const blob = new Blob([payload], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(url);
+};
 
 const readUsers = () => {
   const storedUsers = safeParse(localStorage.getItem(STORAGE_USERS_KEY));
@@ -201,6 +244,32 @@ const isStandaloneMode = () =>
 const setInstallButtonVisibility = (visible) => {
   if (!installAppBtn) return;
   installAppBtn.classList.toggle('hidden', !visible || isStandaloneMode());
+};
+
+const syncAndroidInstallNote = () => {
+  if (!androidInstallNote) return;
+  if (APK_DOWNLOAD_URL) {
+    androidInstallNote.textContent = 'Install App adds PlastiNet to the home screen instantly. Download APK opens the packaged Android build.';
+    return;
+  }
+  androidInstallNote.textContent = 'Install App works now in Chrome on Android. Download APK becomes active after you add a hosted APK URL in the plastinet-apk-url meta tag.';
+};
+
+const triggerApkDownload = () => {
+  if (!APK_DOWNLOAD_URL) {
+    showToast('APK file is not attached yet. Add a real APK URL in the plastinet-apk-url meta tag, then redeploy.', 'info');
+    return;
+  }
+
+  const anchor = document.createElement('a');
+  anchor.href = APK_DOWNLOAD_URL;
+  anchor.target = '_blank';
+  anchor.rel = 'noopener';
+  anchor.download = '';
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  showToast('Opening APK download…', 'success');
 };
 
 const registerInstallPrompt = () => {
@@ -326,6 +395,22 @@ const highlightNav = (viewId) => {
   });
 };
 
+const getRequestedView = () => {
+  const params = new URLSearchParams(window.location.search);
+  const candidate = params.get('view')?.trim();
+  return isKnownView(candidate) ? candidate : 'landing';
+};
+
+const syncViewToUrl = (viewId) => {
+  const url = new URL(window.location.href);
+  if (viewId === 'landing') {
+    url.searchParams.delete('view');
+  } else {
+    url.searchParams.set('view', viewId);
+  }
+  window.history.replaceState({}, '', `${url.pathname}${url.search}`);
+};
+
 const updateAuthVisibility = (hide = false) => {
   authElements.forEach((el) => {
     el.classList.toggle('hidden', hide);
@@ -333,8 +418,7 @@ const updateAuthVisibility = (hide = false) => {
 };
 
 const calculateStats = () => {
-  const history = currentUser?.history ?? [];
-  const scans = history.filter((entry) => entry.action === 'Plastic recycled').length;
+  const scans = getScanEntries().length;
   return { scans, points: currentUser?.points ?? 0 };
 };
 
@@ -373,16 +457,20 @@ const renderAchievements = () => {
 };
 
 const renderHistory = () => {
-  const entries = currentUser?.history ?? [];
-  const scans = entries.filter((entry) => entry.action === 'Plastic recycled');
+  const scans = getScanEntries();
   if (historyEmpty) historyEmpty.style.display = scans.length ? 'none' : 'block';
+  if (historyEmpty) {
+    historyEmpty.textContent = scans.length
+      ? ''
+      : 'No scans recorded yet. Try a demo scan or paste a BIN code to create your first verified entry.';
+  }
   if (historyList) {
     historyList.innerHTML = scans
       .map(
         (entry) => `
       <li>
         <span>${entry.qrId || 'Plastic recycled'}</span>
-        <span>+${formatPlastiCoins(entry.points)} · ${new Date(entry.date).toLocaleString()}</span>
+        <span>+${formatPlastiCoins(entry.points)} · ${formatDateTime(entry.date)}</span>
       </li>
     `
       )
@@ -412,6 +500,39 @@ const renderHistory = () => {
   }
 };
 
+const renderHistorySummary = () => {
+  if (!historySummary) return;
+
+  const scans = getScanEntries();
+  const rewards = getRewardEntries();
+  const totalEarned = scans.reduce((sum, entry) => sum + Number(entry.points || 0), 0);
+  const totalRedeemed = rewards.reduce((sum, entry) => sum + Number(entry.points || 0), 0);
+  const latestScan = getLastScanEntry();
+
+  historySummary.innerHTML = `
+    <article class="history-stat">
+      <span class="label">Verified scans</span>
+      <strong>${scans.length}</strong>
+    </article>
+    <article class="history-stat">
+      <span class="label">Points earned</span>
+      <strong>${formatPlastiCoins(totalEarned)}</strong>
+    </article>
+    <article class="history-stat">
+      <span class="label">Redeemed</span>
+      <strong>${formatPlastiCoins(totalRedeemed)}</strong>
+    </article>
+    <article class="history-stat">
+      <span class="label">Last scan</span>
+      <strong>${latestScan ? formatDateOnly(latestScan.date) : 'Not yet'}</strong>
+    </article>
+  `;
+
+  if (exportHistoryBtn) {
+    exportHistoryBtn.disabled = !scans.length;
+  }
+};
+
 const renderLeaderboard = (rows = []) => {
   if (!leaderboardList) return;
   leaderboardList.innerHTML = rows
@@ -434,7 +555,6 @@ const renderRewards = () => {
       const afford = points >= reward.cost;
       return `
         <article class="reward-card">
-          ${reward.image ? `<img src="${reward.image}" alt="${reward.title}" style="display:block; width:100%; height:140px; object-fit:cover; border-radius:6px; margin-bottom:10px;">` : ''}
           <p class="label">${reward.title}</p>
           <p class="reward-value">Cost: ${formatPlastiCoins(reward.cost)}</p>
           <p class="card-detail">${reward.description || 'Redeemable for verified plastic drops.'}</p>
@@ -452,6 +572,87 @@ const renderRewards = () => {
       button.addEventListener('click', () => redeemReward(reward));
     }
   });
+};
+
+const setMissionButton = (button, config) => {
+  if (!button) return;
+  if (!config) {
+    button.classList.add('hidden');
+    button.dataset.action = '';
+    return;
+  }
+  button.classList.remove('hidden');
+  button.textContent = config.label;
+  button.dataset.action = config.action;
+};
+
+const renderMissionControl = () => {
+  if (!missionList || !missionTitle || !missionStatus || !currentUser) return;
+
+  const stats = calculateStats();
+  const nextReward = getNextReward(currentUser.points);
+  const checkedInToday = hasScannedToday();
+  const checklist = [
+    { done: Boolean(currentUser.email), title: 'Profile activated', detail: currentUser.email },
+    {
+      done: stats.scans >= 1,
+      title: 'First verified scan',
+      detail: stats.scans ? `${stats.scans} scan${stats.scans === 1 ? '' : 's'} recorded` : 'Run a demo scan or paste a BIN code'
+    },
+    {
+      done: !nextReward,
+      title: nextReward ? `Reach ${formatPlastiCoins(nextReward.cost)} for ${nextReward.title}` : 'All current rewards unlocked',
+      detail: nextReward ? `${formatPlastiCoins(nextReward.cost - currentUser.points)} to go` : 'You can redeem from the rewards vault now'
+    },
+    {
+      done: checkedInToday,
+      title: 'Protect today’s streak',
+      detail: checkedInToday ? 'Already scanned today' : 'One verified scan keeps the streak glowing'
+    }
+  ];
+
+  missionList.innerHTML = checklist
+    .map(
+      (item) => `
+        <li class="${item.done ? 'done' : ''}">
+          <span class="mission-bullet">${item.done ? 'Done' : 'Next'}</span>
+          <div>
+            <strong>${item.title}</strong>
+            <p>${item.detail}</p>
+          </div>
+        </li>
+      `
+    )
+    .join('');
+
+  if (stats.scans === 0) {
+    missionTitle.textContent = 'Start with your first verified recycling event.';
+    missionStatus.textContent = 'Use the camera, run a demo scan, or paste a BIN code manually if you are on desktop.';
+    setMissionButton(missionPrimaryBtn, { label: 'Open Scanner', action: 'scan' });
+    setMissionButton(missionSecondaryBtn, { label: 'Ask Cloe', action: 'assistant' });
+    return;
+  }
+
+  if (!checkedInToday) {
+    missionTitle.textContent = 'Your streak is waiting for today’s check-in.';
+    missionStatus.textContent = 'One more verified scan today keeps your momentum alive and moves you closer to the next reward.';
+    setMissionButton(missionPrimaryBtn, { label: 'Keep Streak Alive', action: 'scan' });
+    setMissionButton(missionSecondaryBtn, { label: 'Open History', action: 'history' });
+    return;
+  }
+
+  if (nextReward) {
+    missionTitle.textContent = `You are ${formatPlastiCoins(nextReward.cost - currentUser.points)} away from ${nextReward.title}.`;
+    missionStatus.textContent = 'Your account is active and the next reward checkpoint is within reach.';
+    setMissionButton(missionPrimaryBtn, { label: 'View Rewards', action: 'rewards' });
+    setMissionButton(missionSecondaryBtn, { label: 'Scan Again', action: 'scan' });
+    return;
+  }
+
+  missionTitle.textContent = 'Reward-ready and fully synced.';
+  missionStatus.textContent = 'You have enough PlastiCoins for every listed reward. Redeem one or review your verified history.';
+  setMissionButton(missionPrimaryBtn, { label: 'Redeem Reward', action: 'rewards' });
+  setMissionButton(missionSecondaryBtn, { label: 'Review History', action: 'history' });
 };
 
 const fetchRewards = async () => {
@@ -479,16 +680,26 @@ const updateDashboard = () => {
   if (!currentUser) return;
   const hours = new Date().getHours();
   const greeting = hours < 12 ? 'Morning' : hours < 18 ? 'Afternoon' : 'Evening';
+  const scanCount = getScanEntries().length;
   dashboardGreeting.textContent = `Good ${greeting}, ${currentUser.name}`;
   animateValue(dashboardPoints, previousPoints, currentUser.points, 1000);
   previousPoints = currentUser.points;
+  profileName.textContent = currentUser.name;
+  profileEmail.textContent = currentUser.email;
   profilePoints.textContent = formatPlastiCoins(currentUser.points);
-  dashboardScans.textContent = `${(currentUser.history ?? []).filter((entry) => entry.action === 'Plastic recycled').length}`;
-  dashboardStatus.textContent = 'Session active · All systems stable';
+  profileScans.textContent = `${scanCount}`;
+  dashboardScans.textContent = `${scanCount}`;
+  dashboardStatus.textContent = scanCount
+    ? hasScannedToday()
+      ? 'Checked in today · Streak protected'
+      : 'Ready for today’s scan · streak can grow'
+    : 'No verified scans yet · demo mode ready';
   dashboardStreak.textContent = `🔥 ${currentUser.streakCount ?? 0} Day Streak`;
   renderImpact();
   renderProgress();
+  renderMissionControl();
   renderHistory();
+  renderHistorySummary();
   renderAchievements();
   renderRewards();
   fetchLeaderboard();
@@ -576,6 +787,42 @@ const toggleScannerVisibility = (visible) => {
   scannerWrapper.classList.toggle('active', visible);
 };
 
+const runMissionAction = (action) => {
+  switch (action) {
+    case 'scan':
+      showView('scan');
+      break;
+    case 'rewards':
+      showView('rewards');
+      break;
+    case 'history':
+      showView('history');
+      break;
+    case 'assistant':
+      showView('landing');
+      window.setTimeout(() => assistantInput?.focus(), 80);
+      break;
+    default:
+      break;
+  }
+};
+
+const exportScanHistory = () => {
+  const scans = getScanEntries();
+  if (!scans.length) {
+    showToast('No scan history to export yet.', 'info');
+    return;
+  }
+
+  const rows = [
+    ['QR ID', 'Points', 'Action', 'Date'],
+    ...scans.map((entry) => [entry.qrId || '', entry.points || 0, entry.action || '', formatDateTime(entry.date)])
+  ];
+  const csv = rows.map((row) => row.map(csvEscape).join(',')).join('\n');
+  downloadTextFile(`plastinet-scan-history-${new Date().toISOString().slice(0, 10)}.csv`, csv, 'text/csv;charset=utf-8');
+  showToast('Scan history exported as CSV.', 'success');
+};
+
 const stopScanner = async () => {
   if (html5QrCode && scannerActive) {
     await html5QrCode.stop().catch(() => { });
@@ -599,12 +846,20 @@ const handleScanResult = async (decodedText) => {
     showToast('QR code must start with BIN_.', 'error');
     return;
   }
-  updateScanStatus('Processing QR…');
+  updateScanStatus('Registering QR with cloud…');
   toggleScannerProcessing(true);
   showLoader('Processing scan…');
   await stopScanner();
 
   try {
+    const registration = await registerQrWithServer(parsed);
+    if (!registration.success) {
+      updateScanStatus(registration.message || 'QR registration failed.', 'error');
+      showToast(registration.message || 'Could not register QR.', 'error');
+      return;
+    }
+
+    updateScanStatus('Validating material and credits…');
     const response = await sendScanToServer(parsed, { userId: currentUser.email ?? 'guest' });
     if (!response.success) {
       updateScanStatus(response.message || 'Scan rejected.', 'error');
@@ -677,6 +932,7 @@ const showView = (target) => {
     section.classList.toggle('active', section.dataset.view === destination);
   });
   highlightNav(destination);
+  syncViewToUrl(destination);
   if (destination === 'login') setFeedback(loginFeedback, '');
   if (destination === 'signup') setFeedback(signupFeedback, '');
   if (destination === 'rewards') setFeedback(rewardFeedback, '');
@@ -690,6 +946,7 @@ const showView = (target) => {
 };
 
 const restoreSession = async () => {
+  const requestedView = getRequestedView();
   const session = storage.getSession();
   const storedUser = session?.email ? storage.findUserByEmail(session.email) : null;
   if (session?.email && storedUser?.email) {
@@ -698,12 +955,12 @@ const restoreSession = async () => {
     updateAuthVisibility(true);
     updateDashboard();
     showToast('Session restored.', 'success');
-    showView('dashboard');
+    showView(requestedView === 'landing' ? 'dashboard' : requestedView);
   } else {
     storage.clearSession();
     updateAuthVisibility(false);
     renderSavedAccounts();
-    showView('landing');
+    showView(requestedView);
   }
 };
 
@@ -929,6 +1186,24 @@ importTrainingInput?.addEventListener('change', async (event) => {
   }
 });
 
+manualScanForm?.addEventListener('submit', (event) => {
+  event.preventDefault();
+  const value = manualScanInput?.value?.trim();
+  if (!value) {
+    updateScanStatus('Paste a BIN code to submit manually.', 'error');
+    showToast('Enter a BIN code first.', 'error');
+    return;
+  }
+
+  showView('scan');
+  manualScanInput.value = '';
+  handleScanResult(value);
+});
+
+missionPrimaryBtn?.addEventListener('click', () => runMissionAction(missionPrimaryBtn.dataset.action));
+missionSecondaryBtn?.addEventListener('click', () => runMissionAction(missionSecondaryBtn.dataset.action));
+exportHistoryBtn?.addEventListener('click', exportScanHistory);
+
 installAppBtn?.addEventListener('click', async () => {
   if (!deferredInstallPrompt) {
     showToast('Install is available after the app fully loads in Chrome on Android.', 'info');
@@ -945,6 +1220,8 @@ installAppBtn?.addEventListener('click', async () => {
   }
 });
 
+downloadApkBtn?.addEventListener('click', triggerApkDownload);
+
 suggestionList?.addEventListener('click', (event) => {
   const button = event.target.closest('button[data-prompt]');
   if (!button) return;
@@ -953,7 +1230,6 @@ suggestionList?.addEventListener('click', (event) => {
   assistantInput.focus();
 });
 
-const simulateBinBtn = document.getElementById('simulate-bin-btn');
 simulateBinBtn?.addEventListener('click', () => {
   const qr = simulateBinQRCode();
   updateScanStatus('Processing simulated QR…');
@@ -969,6 +1245,7 @@ const initApp = async () => {
   renderSavedAccounts();
   await restoreSession();
   refreshTrainingHistory();
+  syncAndroidInstallNote();
   setInstallButtonVisibility(Boolean(deferredInstallPrompt));
 };
 
