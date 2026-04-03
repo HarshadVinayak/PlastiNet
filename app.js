@@ -6,7 +6,7 @@
  *    ES Modules need HTTP so `file://` access will fail.
  */
 import { markScanned, parseBinQRCode, simulateBinQRCode } from './qr.js';
-import { registerQrWithServer, sendScanToServer } from './api.js';
+import * as api from './api.js?v=2026-04-03-1';
 
 /*
  * Hardware integration note:
@@ -116,6 +116,44 @@ const simulateBinBtn = document.getElementById('simulate-bin-btn');
 const formatPlastiCoins = (value = 0) => `P$${Number(value || 0).toLocaleString()}`;
 const formatDateTime = (value) => new Date(value).toLocaleString();
 const formatDateOnly = (value) => new Date(value).toLocaleDateString();
+
+const API_BASE_URL = window.location.origin;
+const registerQrWithServer = api.registerQrWithServer ?? (async (qrData) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/registerQR`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        qrId: qrData?.raw || qrData?.qrId || qrData
+      })
+    });
+    return await response.json();
+  } catch (error) {
+    console.error('QR registration fallback error:', error);
+    return { success: false, message: 'Connection to server failed while registering QR.' };
+  }
+});
+
+const sendScanToServer = api.sendScanToServer ?? (async (qrData, userData = {}) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/scan`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        qrId: qrData?.raw,
+        userId: userData.userId || userData.email
+      })
+    });
+    return await response.json();
+  } catch (error) {
+    console.error('Scan API fallback error:', error);
+    return { success: false, message: 'Connection to server failed.' };
+  }
+});
 
 let html5QrCode = null;
 let scannerActive = false;

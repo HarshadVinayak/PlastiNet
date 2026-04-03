@@ -1,4 +1,4 @@
-const CACHE_NAME = 'plastinet-shell-v3';
+const CACHE_NAME = 'plastinet-shell-v4';
 const APP_SHELL = [
   '/',
   '/index.html',
@@ -38,14 +38,39 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
+  const networkFirstPaths = new Set([
+    '/',
+    '/index.html',
+    '/style.css',
+    '/app.js',
+    '/api.js',
+    '/qr.js',
+    '/cloe-brain.js',
+    '/manifest.webmanifest'
+  ]);
 
   if (request.method !== 'GET') return;
   if (url.origin !== self.location.origin) return;
   if (url.pathname.startsWith('/scan') || url.pathname.startsWith('/registerQR') || url.pathname === '/health') return;
 
-  if (request.mode === 'navigate') {
+  if (request.mode === 'navigate' || request.destination === 'script' || request.destination === 'style' || networkFirstPaths.has(url.pathname)) {
     event.respondWith(
-      fetch(request).catch(() => caches.match('/index.html'))
+      fetch(request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+            const responseClone = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, responseClone));
+          }
+          return networkResponse;
+        })
+        .catch(async () => {
+          const cachedResponse = await caches.match(request);
+          if (cachedResponse) return cachedResponse;
+          if (request.mode === 'navigate') {
+            return caches.match('/index.html');
+          }
+          throw new Error(`No cached response for ${url.pathname}`);
+        })
     );
     return;
   }
