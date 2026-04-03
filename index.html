@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PlastiNet</title>
+  <meta name="description" content="PlastiNet turns recycling into a smooth Android-installable experience with scans, rewards, and PlastiCoins." />
+  <meta name="theme-color" content="#030407" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="PlastiNet" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="assets/app-icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="assets/app-icon-192.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <div class="app-shell">
+    <header class="hero" aria-label="PlastiNet promo">
+      <div class="hero-art">
+        <img src="assets/neon-grid.svg" alt="Neon grid pattern" />
+      </div>
+      <div class="hero-content">
+        <div class="brand-tag">
+          <span class="brand">PlastiNet</span>
+          <span class="tagline">Turn Plastic Into Rewards</span>
+        </div>
+        <p class="hero-copy">
+          A command center for recyclers that feels alive. Unlock PlastiCoins, reward communities, and chart every
+          recycled bottle in a neon-first interface while Cloe AI keeps the data curious.
+        </p>
+        <div class="hero-actions">
+          <button class="glow-btn" data-target="login" data-auth>Login</button>
+          <button class="glow-btn secondary" data-target="signup" data-auth>Sign Up</button>
+          <button class="glow-btn secondary hidden" id="install-app-btn" type="button">Install App</button>
+        </div>
+        <div class="hero-highlight-grid">
+          <article class="hero-highlight">
+            <p class="label">Avg. plastic logged</p>
+            <h3>28 kg / week</h3>
+            <p class="subtle">Active hubs stay in the green.</p>
+          </article>
+          <article class="hero-highlight">
+            <p class="label">Pulse</p>
+            <h3>97% uptime</h3>
+            <p class="subtle">Sensors and docs synced.</p>
+          </article>
+          <article class="hero-highlight">
+            <p class="label">Community credits</p>
+            <h3>1,420 collectors</h3>
+            <p class="subtle">Pledging real-world drops.</p>
+          </article>
+        </div>
+        <div class="hero-ai">
+          <p class="label">Cloe AI</p>
+          <h3>
+            A conversational assistant that tracks scans, unlocks tips, and keeps your dashboard vibrant.
+          </h3>
+          <p class="hero-ai-copy">
+            Cloe observes your connected hubs, suggests reward-ready moments, and pushes insights when you need
+            them most.
+          </p>
+          <div class="hero-ai-note">
+            <span>Always aware of your impact.</span>
+            <span>Ready with recommendations.</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <nav class="main-nav" aria-label="Primary">
+      <span class="logo">PlastiNet</span>
+      <div class="nav-actions">
+        <button class="nav-btn" data-target="landing">Landing</button>
+        <button class="nav-btn" data-target="login" data-auth>Login</button>
+        <button class="nav-btn" data-target="signup" data-auth>Sign Up</button>
+        <button class="nav-btn" data-target="dashboard">Dashboard</button>
+        <button class="nav-btn" data-target="scan">Scan</button>
+        <button class="nav-btn" data-target="history">History</button>
+        <button class="nav-btn" data-target="rewards">Rewards</button>
+        <button class="nav-btn" data-target="profile">Profile</button>
+      </div>
+    </nav>
+
+    <main class="views" id="views">
+      <section class="view active" data-view="landing">
+        <div class="content-panel">
+          <h2>Future-proof your recycling journey</h2>
+          <p>
+            Start tracking plastic flows, reward collectors in real time, and feel the glow of every new energy
+            credit generated.
+          </p>
+          <div class="panel-actions">
+            <button class="glow-btn" data-target="login" data-auth>Login</button>
+            <button class="glow-btn secondary" data-target="signup" data-auth>Sign Up</button>
+          </div>
+          <div class="landing-metrics">
+            <article class="metric-card">
+              <p class="label">Live impact</p>
+              <h3>12.4 tons recycled</h3>
+              <p class="subtle">Tracked across the platform this month.</p>
+            </article>
+            <article class="metric-card">
+              <p class="label">CO₂ avoided</p>
+              <h3>870 kg cleared</h3>
+              <p class="subtle">Equivalent to 4 electric buses / day.</p>
+            </article>
+            <article class="metric-card">
+              <p class="label">Next milestone</p>
+              <h3>Community share 96%</h3>
+              <p class="subtle">Cloe keeps the next badge ready.</p>
+            </article>
+          </div>
+          <div class="landing-ai-card">
+            <p class="label">Cloe AI Assistant</p>
+            <h3>“Ask Cloe to highlight your next reward.”</h3>
+            <p class="hero-ai-copy">
+              Cloe watches your scans, predicts reward opportunities, and keeps dashboards alive even when the field
+              is busy.
+            </p>
+            <button class="glow-btn secondary" data-target="scan">Let Cloe log a scan</button>
+          </div>
+          <div class="landing-cta-card">
+            <h3>Need a guided tour?</h3>
+            <p>Start a scanner session, tap a reward, and let Cloe narrate each milestone.</p>
+            <div class="panel-actions">
+              <button class="glow-btn" data-target="scan">Try a demo scan</button>
+              <button class="glow-btn secondary" data-target="rewards">Preview rewards</button>
+            </div>
+          </div>
+          <div class="assistant-panel">
+            <div class="assistant-header">
+              <p class="label">Cloe brain</p>
+              <h3>Ask Cloe about scans, the devices, or rewards</h3>
+              <p class="subtle">This neural core keeps the answers tied to PlastiNet, the scanner, and the perks you
+                love.</p>
+            </div>
+            <div id="cloe-assistant-log" class="assistant-log" aria-live="polite">
+              <div class="assistant-bubble assistant-bubble--cloe">
+                <p>Hey, I'm Cloe. Ask me how to earn more PlastiCoins, keep a streak alive, or redeem that neon reward.</p>
+              </div>
+            </div>
+            <form id="cloe-assistant-form" class="assistant-form">
+              <input id="cloe-assistant-input" type="text" name="question" placeholder="e.g. How do I earn more PlastiCoins?"
+                autocomplete="off" />
+              <button class="glow-btn" type="submit">Ask Cloe</button>
+            </form>
+            <details class="assistant-training">
+              <summary>Teach Cloe a new insight</summary>
+              <form id="cloe-training-form">
+                <label class="input-group">
+                  <span>Topic keywords</span>
+                  <input type="text" name="topic" placeholder="device, reward, streak" />
+                </label>
+                <label class="input-group">
+                  <span>Response</span>
+                  <textarea name="response" rows="2" placeholder="What should Cloe say?" required></textarea>
+                </label>
+                <button type="submit" class="glow-btn secondary">Save to brain</button>
+                <p class="assistant-feedback" id="cloe-training-feedback"></p>
+              </form>
+              <div class="assistant-share-tools">
+                <p class="subtle">Share Cloe without hosting by exporting a JSON brain file and importing it on another laptop.</p>
+                <div class="assistant-share-actions">
+                  <button type="button" class="glow-btn secondary" id="export-training-btn">Export brain JSON</button>
+                  <label class="glow-btn secondary file-action" for="import-training-input">Import shared brain</label>
+                  <input type="file" id="import-training-input" accept="application/json" hidden />
+                </div>
+              </div>
+            </details>
+            <div class="assistant-suggestions">
+              <p class="label">Try these prompts</p>
+              <div id="assistant-suggestion-list" class="suggestion-list">
+                <button type="button" data-prompt="How do I keep a streak alive?">How to keep a streak alive?</button>
+                <button type="button" data-prompt="What happens when the bin scans duplicate codes?">What counts as a duplicate?</button>
+                <button type="button" data-prompt="Tell me about the rewards tiers.">Explain the rewards tiers</button>
+              </div>
+            </div>
+            <div class="assistant-history">
+              <p class="label">Recent training</p>
+              <ul id="assistant-history-list"></ul>
+            </div>
+          </div>
+          <div class="landing-feature-grid">
+            <article class="feature-card">
+              <p class="label">Live Reactor View</p>
+              <p>Trace every ton of plastic as it turns into energy; Cloe keeps the oscillating tracker synced.</p>
+            </article>
+            <article class="feature-card">
+              <p class="label">Rewards & Credibility</p>
+              <p>Stay ahead with coupons, badges, and validation logs surfaced by Cloeʼs recommendation engine.</p>
+            </article>
+            <article class="feature-card">
+              <p class="label">History with Context</p>
+              <p>Share instantly verifiable history sequences whenever a partner or regulator needs proof.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" data-view="login">
+        <div class="content-panel">
+          <h2>Login</h2>
+          <p>Enter your credentials to jump back into your dashboard.</p>
+          <form id="login-form" class="form-grid">
+            <label class="input-group">
+              <span>Email</span>
+              <input type="email" name="email" placeholder="you@plastinet" required />
+            </label>
+            <label class="input-group">
+              <span>Password</span>
+              <input type="password" name="password" placeholder="••••••••" required />
+            </label>
+            <p class="form-feedback" id="login-feedback" aria-live="polite"></p>
+            <button type="submit" class="glow-btn">Login</button>
+          </form>
+          <div id="saved-accounts" class="saved-accounts hidden" aria-live="polite"></div>
+        </div>
+      </section>
+
+      <section class="view" data-view="signup">
+        <div class="content-panel">
+          <h2>Create account</h2>
+          <p>Register once and keep your PlastiCoins forever.</p>
+          <form id="signup-form" class="form-grid">
+            <label class="input-group">
+              <span>Name</span>
+              <input type="text" name="name" placeholder="Full name" required />
+            </label>
+            <label class="input-group">
+              <span>Email</span>
+              <input type="email" name="email" placeholder="you@plastinet" required />
+            </label>
+            <label class="input-group">
+              <span>Password</span>
+              <input type="password" name="password" placeholder="Create password" required />
+            </label>
+            <label class="input-group">
+              <span>Confirm password</span>
+              <input type="password" name="confirm" placeholder="Repeat password" required />
+            </label>
+            <p class="form-feedback" id="signup-feedback" aria-live="polite"></p>
+            <button type="submit" class="glow-btn">Sign Up</button>
+          </form>
+        </div>
+      </section>
+
+      <section class="view" data-view="dashboard">
+        <div class="content-panel">
+          <div class="dashboard-header">
+            <p class="eyebrow">Dashboard</p>
+            <h2 id="dashboard-greeting">Welcome, User</h2>
+            <p class="subtle" id="dashboard-subtext">Data driven, always glowing.</p>
+          </div>
+          <div class="points-card">
+            <div>
+              <p class="label">PlastiCoins</p>
+              <h3><span id="dashboard-points">0</span> P$</h3>
+            </div>
+            <div class="points-meta">
+              <p class="subtle">Total scans: <span id="dashboard-scans">0</span></p>
+              <p class="subtle" id="dashboard-status">Session secure.</p>
+            </div>
+          </div>
+          <p class="subtle" id="dashboard-streak">🔥 0 Day Streak</p>
+          <div class="impact-metrics">
+            <p id="impact-plastic">You saved 0.0 kg plastic.</p>
+            <p id="impact-co2">Reduced 0.0 kg CO₂.</p>
+          </div>
+          <div class="progress-track">
+            <div class="progress-bar" id="next-reward-progress"></div>
+          </div>
+          <p class="progress-label" id="progress-label">0 / 100 P$ toward next reward</p>
+          <div class="dashboard-grid">
+            <article class="dash-card dash-card--scanner">
+              <div class="dash-card-head">
+                <span class="label">Scan QR</span>
+                <span class="dash-card-badge">Instant</span>
+              </div>
+              <p class="card-detail">
+                Simulate a scan and instantly add PlastiCoins to your ledger with Cloe guiding each step.
+              </p>
+              <div class="dash-card-footer">
+                <button class="glow-btn" id="dashboard-scan">Scan Now</button>
+                <p class="subtle">Avg. reward: P$12 / 5 scans</p>
+              </div>
+            </article>
+            <article class="dash-card dash-card--rewards">
+              <div class="dash-card-head">
+                <span class="label">Rewards</span>
+                <span class="dash-card-badge">Curated</span>
+              </div>
+              <p class="card-detail">Redeem coupons and unlock neon perks curated based on your streak.</p>
+              <div class="dash-card-footer">
+                <button class="glow-btn secondary" data-target="rewards">View Rewards</button>
+                <p class="subtle">Next reward: Bamboo Straw Set · P$50</p>
+              </div>
+            </article>
+            <article class="dash-card dash-card--history">
+              <div class="dash-card-head">
+                <span class="label">History</span>
+                <span class="dash-card-badge">Verified</span>
+              </div>
+              <p class="card-detail">Track every credit and recycled bottle, then share proofs with partners.</p>
+              <div class="dash-card-footer">
+                <button class="glow-btn secondary" data-target="history">Open History</button>
+                <p class="subtle">Latest scan: <span id="latest-scan">—</span></p>
+              </div>
+            </article>
+          </div>
+          <div class="leaderboard-card">
+            <div class="leaderboard-header">
+              <p class="label">Leaderboard</p>
+              <p class="subtle">Top recyclers</p>
+            </div>
+            <ul id="leaderboard-list" class="leaderboard-list"></ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" data-view="scan">
+        <div class="content-panel">
+          <div class="scan-header">
+            <h2>Scan QR</h2>
+            <p>Hook up Cloe AI, point your camera, and validate each barcode in real time.</p>
+          </div>
+          <div class="scanner-wrapper" id="scanner-wrapper">
+            <div id="qr-reader"></div>
+            <div class="scan-overlay">
+              <div class="scan-box"></div>
+              <p>Align QR code inside the box</p>
+            </div>
+            <button class="glow-btn secondary scanner-close" id="close-scanner-btn">Close scanner</button>
+          </div>
+          <div class="scan-actions">
+            <div class="scan-buttons">
+              <button class="glow-btn glow-wide" id="scan-btn">Start camera</button>
+              <button class="glow-btn secondary" id="simulate-bin-btn">Run demo scan</button>
+            </div>
+            <p class="subtle" id="scan-status">Waiting for your next haul.</p>
+          </div>
+          <div class="scan-history">
+            <h3>Latest activity</h3>
+            <ul id="scan-history" class="history-list"></ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" data-view="rewards">
+        <div class="content-panel">
+          <h2>Rewards</h2>
+          <p>Redeem your PlastiCoins for real-world impact. Cloe curates the best perks.</p>
+          <div id="rewards-grid" class="reward-grid"></div>
+          <p class="form-feedback" id="reward-feedback"></p>
+        </div>
+      </section>
+
+      <section class="view" data-view="history">
+        <div class="content-panel">
+          <h2>Scan history</h2>
+          <p>Every entry represents a bottle saved from landfills.</p>
+          <div class="history-wrapper">
+            <p class="subtle" id="history-empty">No scans recorded yet.</p>
+            <ul id="history-list" class="history-list"></ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" data-view="profile">
+        <div class="content-panel">
+          <h2>Profile</h2>
+          <div class="profile-grid">
+            <div>
+              <p class="label">Name</p>
+              <p id="profile-name">—</p>
+            </div>
+            <div>
+              <p class="label">Email</p>
+              <p id="profile-email">—</p>
+            </div>
+            <div>
+              <p class="label">PlastiCoins</p>
+              <p id="profile-points">P$0</p>
+            </div>
+            <div>
+              <p class="label">Total scans</p>
+              <p id="profile-scans">0</p>
+            </div>
+          </div>
+          <div class="profile-actions">
+            <button class="glow-btn secondary" id="edit-profile-btn">Edit Profile</button>
+            <button class="glow-btn" id="logout-btn">Logout</button>
+          </div>
+          <form class="profile-form" id="profile-form">
+            <h3>Edit profile</h3>
+            <div class="form-grid">
+              <label class="input-group">
+                <span>Name</span>
+                <input type="text" id="edit-name" name="name" required />
+              </label>
+              <label class="input-group">
+                <span>Email</span>
+                <input type="email" id="edit-email" name="email" required />
+              </label>
+              <label class="input-group">
+                <span>New password</span>
+                <input type="password" id="edit-password" name="password" placeholder="Leave blank to keep current" />
+              </label>
+              <label class="input-group">
+                <span>Confirm password</span>
+                <input type="password" id="edit-confirm" name="confirm" placeholder="Repeat new password" />
+              </label>
+            </div>
+            <p class="form-feedback" id="profile-feedback" aria-live="polite"></p>
+            <div class="profile-form-actions">
+              <button type="submit" class="glow-btn">Save changes</button>
+              <button type="button" class="glow-btn secondary" id="cancel-edit">Cancel</button>
+            </div>
+          </form>
+          <div class="achievements-panel">
+            <h3>Achievements</h3>
+            <div id="achievements-grid" class="achievements-grid"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="app-footer" aria-label="App navigation">
+      <button class="footer-btn" data-target="dashboard">Dashboard</button>
+      <button class="footer-btn" data-target="scan">Scan</button>
+      <button class="footer-btn" data-target="rewards">Rewards</button>
+      <button class="footer-btn" data-target="profile">Profile</button>
+    </footer>
+  </div>
+
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+  <div id="scrim" class="scrim hidden">
+    <div class="loader"></div>
+    <p id="loader-text" class="loader-text">Working…</p>
+  </div>
+
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  <script src="cloe-brain.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+
+</html>

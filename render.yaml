@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: plastinet
+    runtime: node
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: MONGODB_URI
+        sync: false

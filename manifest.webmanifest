@@ -1,0 +1,66 @@
+{
+  "name": "PlastiNet",
+  "short_name": "PlastiNet",
+  "description": "Recycle, scan, earn PlastiCoins, and track your impact in a smooth installable app.",
+  "dir": "ltr",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "background_color": "#030407",
+  "theme_color": "#030407",
+  "orientation": "portrait",
+  "categories": ["lifestyle", "utilities", "productivity"],
+  "shortcuts": [
+    {
+      "name": "Scan plastic",
+      "short_name": "Scan",
+      "description": "Launch the QR scanner and record a drop",
+      "url": "/?view=scan",
+      "icons": [
+        {
+          "src": "/assets/app-icon-maskable-512.png",
+          "sizes": "512x512",
+          "type": "image/png",
+          "purpose": "maskable"
+        }
+      ]
+    },
+    {
+      "name": "Browse rewards",
+      "short_name": "Rewards",
+      "description": "See curated perks and redeem PlastiCoins",
+      "url": "/?view=rewards",
+      "icons": [
+        {
+          "src": "/assets/app-icon-512.png",
+          "sizes": "512x512",
+          "type": "image/png",
+          "purpose": "any"
+        }
+      ]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "/assets/app-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/app-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/app-icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
