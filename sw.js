@@ -1,4 +1,4 @@
-const CACHE_NAME = 'plastinet-shell-v4';
+const CACHE_NAME = 'plastinet-shell-v5';
 const APP_SHELL = [
   '/',
   '/index.html',
@@ -9,9 +9,9 @@ const APP_SHELL = [
   '/cloe-brain.js',
   '/assets/neon-grid.svg',
   '/assets/app-icon-source.png',
-  '/assets/app-icon-192.png',
-  '/assets/app-icon-512.png',
-  '/assets/app-icon-maskable-512.png',
+  '/assets/app-icon-192.png?v=2026-04-03-2',
+  '/assets/app-icon-512.png?v=2026-04-03-2',
+  '/assets/app-icon-maskable-512.png?v=2026-04-03-2',
   '/manifest.webmanifest'
 ];
 
