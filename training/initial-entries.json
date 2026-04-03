@@ -1,0 +1,16 @@
+[
+  {
+    "id": "custom-local-share",
+    "title": "Sharing the local brain",
+    "tags": ["share", "local", "brain", "json"],
+    "response": "Use the Export brain JSON button to download Cloe's custom training, then import that same file on another laptop to reuse the answers locally.",
+    "trainedAt": 1710000000000
+  },
+  {
+    "id": "custom-community-hub",
+    "title": "Community hub pitch",
+    "tags": ["community", "hub", "collector", "impact"],
+    "response": "PlastiNet helps community hubs show collectors their scan history, points growth, and verified recycling impact in one place.",
+    "trainedAt": 1710003600000
+  }
+]

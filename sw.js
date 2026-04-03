@@ -1,4 +1,4 @@
-const CACHE_NAME = 'plastinet-shell-v5';
+const CACHE_NAME = 'plastinet-shell-v6';
 const APP_SHELL = [
   '/',
   '/index.html',
@@ -9,10 +9,10 @@ const APP_SHELL = [
   '/cloe-brain.js',
   '/assets/neon-grid.svg',
   '/assets/app-icon-source.png',
-  '/assets/app-icon-192.png?v=2026-04-03-2',
-  '/assets/app-icon-512.png?v=2026-04-03-2',
-  '/assets/app-icon-maskable-512.png?v=2026-04-03-2',
-  '/manifest.webmanifest'
+  '/assets/install-icon-192.png',
+  '/assets/install-icon-512.png',
+  '/assets/install-icon-maskable-512.png',
+  '/manifest.webmanifest?v=2026-04-03-3'
 ];
 
 self.addEventListener('install', (event) => {
