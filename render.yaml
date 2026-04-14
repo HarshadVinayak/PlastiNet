@@ -8,3 +8,5 @@ services:
     envVars:
       - key: MONGODB_URI
         sync: false
+      - key: GROQ_API_KEY
+        sync: false

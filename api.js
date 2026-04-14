@@ -39,3 +39,24 @@ export const sendScanToServer = async (qrData, userData = {}) => {
         return { success: false, message: 'Connection to server failed.' };
     }
 };
+
+export const askCloeWithGroq = async ({ question, customEntries = [], userName = '' }) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/cloe/chat`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                question,
+                customEntries,
+                userName,
+            }),
+        });
+
+        return await response.json();
+    } catch (error) {
+        console.error('Cloe chat API error:', error);
+        return { success: false, message: 'Connection to Cloe failed.' };
+    }
+};

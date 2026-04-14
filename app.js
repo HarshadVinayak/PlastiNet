@@ -155,6 +155,26 @@ const sendScanToServer = api.sendScanToServer ?? (async (qrData, userData = {}) 
   }
 });
 
+const askCloeWithGroq = api.askCloeWithGroq ?? (async ({ question, customEntries = [], userName = '' }) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/cloe/chat`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        question,
+        customEntries,
+        userName
+      })
+    });
+    return await response.json();
+  } catch (error) {
+    console.error('Cloe chat fallback error:', error);
+    return { success: false, message: 'Connection to Cloe failed.' };
+  }
+});
+
 let html5QrCode = null;
 let scannerActive = false;
 let currentUser = null;
@@ -265,7 +285,9 @@ const appendAssistantBubble = (text, speaker = 'cloe') => {
   if (!assistantLog || !text) return;
   const bubble = document.createElement('div');
   bubble.className = `assistant-bubble assistant-bubble--${speaker}`;
-  bubble.innerHTML = `<p>${text}</p>`;
+  const paragraph = document.createElement('p');
+  paragraph.textContent = text;
+  bubble.appendChild(paragraph);
   assistantLog.appendChild(bubble);
   assistantLog.scrollTop = assistantLog.scrollHeight;
 };
@@ -1150,15 +1172,39 @@ savedAccounts?.addEventListener('click', (event) => {
   setFeedback(loginFeedback, 'Email filled in. Enter the password to continue.', true);
 });
 
-assistantForm?.addEventListener('submit', (event) => {
+assistantForm?.addEventListener('submit', async (event) => {
   event.preventDefault();
   const question = assistantInput?.value?.trim();
   if (!question) return;
   appendAssistantBubble(question, 'user');
   assistantInput.value = '';
   const brain = window.CloeBrain;
-  const reply = brain?.respond(question) ?? "I'm still learning how to reply.";
-  setTimeout(() => appendAssistantBubble(reply, 'cloe'), 220);
+  if (assistantInput) assistantInput.disabled = true;
+
+  try {
+    const groqResponse = await askCloeWithGroq({
+      question,
+      customEntries: brain?.getCustomEntries?.() ?? [],
+      userName: currentUser?.name ?? ''
+    });
+
+    if (groqResponse?.success && groqResponse.reply) {
+      appendAssistantBubble(groqResponse.reply, 'cloe');
+      return;
+    }
+
+    const fallbackReply = brain?.respond(question) ?? "I'm still learning how to reply.";
+    appendAssistantBubble(fallbackReply, 'cloe');
+  } catch (error) {
+    console.error('Cloe submit failed', error);
+    const fallbackReply = brain?.respond(question) ?? "I'm still learning how to reply.";
+    appendAssistantBubble(fallbackReply, 'cloe');
+  } finally {
+    if (assistantInput) {
+      assistantInput.disabled = false;
+      assistantInput.focus();
+    }
+  }
 });
 
 trainingForm?.addEventListener('submit', (event) => {
